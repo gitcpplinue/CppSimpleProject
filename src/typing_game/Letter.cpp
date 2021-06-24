@@ -34,15 +34,17 @@ int LetterShower::Fall()
 	// 遍历各个容器检查元素
 	for (int i = 0; i < 26; ++i)
 	{
+		// 让所有在界面中显示的字母下降一位
 		for (auto it = m_letters[i].begin(); it != m_letters[i].end(); )
 		{
-			// 如果容器中存在元素，就将其从原来的位置擦除，在下一行重新绘制
+			// 如果容器中存在元素（在界面中显示），就将其从原来的位置擦除，在下一行重新绘制
 			menu.SetCursor(it->x, it->y);
 			cout << ' ';
 
 			if (Ground(*it)) // 如果字母落地，扣血
 			{
-				if (vty.GetWound() <= 0) // 如果血量减为0
+				int iret = vty.GetWound();
+				if (iret <= 0) // 如果血量减为0，结束
 				{
 					menu.SetCursor(25, GROUND / 2);
 					menu.SetTextColor(BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED);
@@ -53,11 +55,15 @@ int LetterShower::Fall()
 					return -1; // 表示游戏结束
 				}
 
-				// 将落地的字母从容器中移除。移除后it会自动指向下一个元素，所以不需要it++
-				it = m_letters[i].erase(it);
+				// 若一个容器中有多个元素，首先落地的肯定是队首元素
+				m_letters[i].pop_front();
+				// 调用pop_front()时it还指向队首元素，会导致迭代器失效，得重新赋值
+				it = m_letters[i].begin();
 				PlaySound(L"..\\sound\\wound.wav", NULL, SND_ASYNC | SND_FILENAME);
 				continue;
 			}
+
+			// 将字母下移一行
 			it->y++;
 			menu.SetCursor(it->x, it->y);
 			cout << it->letter;
@@ -84,7 +90,7 @@ void LetterShower::ShowScore()
 void LetterShower::Rain()
 {
 	char ch = 0; // 保存用户按键
-	vector<Letter>::iterator it;
+	Letter letter;
 	while (1)
 	{
 		// 当用户还未按下按键时，不断尝试生成字母
@@ -100,17 +106,18 @@ void LetterShower::Rain()
 		}
 
 		// 用户按下按键后，进行判断，消除对应的字母
+		// 如果容器中有多个元素，删除队头元素（若界面中一个字母出现多次，消除最下方的字母）
 		ch = _getch();
 		if (ch >= 'a' && ch <= 'z')
 		{
 			if (!m_letters[ch - 'a'].empty())
 			{
-				it = m_letters[ch - 'a'].begin();
+				letter = m_letters[ch - 'a'].front();
 
-				menu.SetCursor(it->x, it->y);
+				menu.SetCursor(letter.x, letter.y);
 				cout << ' ';
 
-				m_letters[ch - 'a'].erase(it); // 删除头元素，应该使用deque容器
+				m_letters[ch - 'a'].pop_front(); // 删除头元素，应该使用deque容器
 				PlaySound(L"..\\sound\\m_score.wav", NULL, SND_ASYNC | SND_FILENAME);
 				m_score++;
 

@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <conio.h>
 #include <vector>
-#include <queue>
+#include <deque>
 #include <time.h>
 #include "Menu.h"
 using namespace std;
@@ -19,7 +19,7 @@ struct Letter
 class LetterShower
 {
 private:
-	vector<Letter> m_letters[26]; // 每个字母1个容器
+	deque<Letter> m_letters[26]; // 每个字母1个容器
 	int m_score; // 分数
 	int m_delay; // 字母落下的速度
 
