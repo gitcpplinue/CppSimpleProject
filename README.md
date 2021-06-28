@@ -12,7 +12,10 @@
 
 对教程的代码进行了修改、优化：
 
-* 添加了Menu类，使用Menu类管理、执行界面的绘制。
 * 每个字母容器都在尾部插入、头部删除，且要对容器进行遍历，所以将LetterShower类的成员变量m_letters从`vector容器`改为`deque容器`。
-* 
+* Menu类用于管理光标位置和字体颜色；
+* Health类管理血量；
+* LetterShower类管理字母的生成、下落和计分。
+* Record类将每次游玩的得分和时间记入`.type_game_record`文件中，得分为0的结果不保存。
+* 绘制界面的工作改由main.cpp中的全局函数来完成。
 

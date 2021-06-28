@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdio.h>
 #include <windows.h>
 #include <conio.h>
 #include <vector>
@@ -6,12 +7,21 @@
 #include <time.h>
 #include "Menu.h"
 #include "Letter.h"
-
-
+#include <fstream>
+#include "Record.h"
 
 using namespace std;
 
 #pragma comment(lib, "winmm.lib") // 为了使用PlaySound函数播放音效
+
+
+
+
+
+
+
+
+
 
 
 // --------------------------- 用于绘制界面的全局函数 ---------------------------
@@ -26,17 +36,17 @@ void ShowRank(); // 排名界面
 
 int main()
 {
+	char choice = 'y'; // 用户的选项
+	int level; // 用户选择的难度
+	int gret = -1;
+	
+
+
 	srand(time(0)); // 产生随机种子
-
-
 
 	// 先显示欢迎界面，待用户按下任意键后进入选项界面
 	Welcome();
 	_getch();
-
-	char choice = 'y'; // 用户的选项
-	int level; // 用户选择的难度登记
-	int gret = -1;
 
 	do
 	{
@@ -49,37 +59,50 @@ int main()
 		health.GetHeal(0);
 
 		ShowPlayGround(level);
+		rec.SetLevel(level);
 
+		bool flag = 0; // 用于区分游戏正常终止(flag == 1)还是通过暂停界面重新开始(flag == 0)
 		while (1)
 		{
 			gret = GameStart(level);
 
-			if (gret == 0)
+			if (gret == 0) // 游戏正常结束，退出内层while循环
 			{
-				// 游戏结束，询问用户是否重新开始
-				menu.SetCursor(10, GROUND + 2);
-				cout << "Try again?(y/n)";
-				cin >> choice;
+				flag = 1;
+				rec.SetScore(ls.GetScore());
+				rec.WriteRecord();
+				break;
 			}
-			else if (gret == 1)
-				continue; // 继续游戏
-			else if (gret == 2)
-				break; // 结束此轮游戏
-			else if (gret == 3)
-				return 0; // 退出游戏
+			else if (gret == 1) // 暂停-继续游戏
+				continue; 
+			else if (gret == 2) // 暂停-结束此轮游戏，退出内层while循环
+			{
+				// 记录此轮游戏信息
+				rec.SetScore(ls.GetScore());
+				rec.WriteRecord();
+				flag = 0;
+				break; 
+			}
+			else if (gret == 3) // 暂停-退出游戏
+			{
+				// 记录此轮游戏信息
+				rec.SetScore(ls.GetScore());
+				rec.WriteRecord();
+				return 0; 
+			}
 		}
-		
+
+		if (flag) 
+		{
+			menu.SetCursor(10, GROUND + 2);
+			cout << "Try again?(y/n)";
+			cin >> choice;
+		}
 	}while (choice == 'Y' || choice == 'y');
 
 }
 
-void showDate()
-{
-	SYSTEMTIME lt;
-	GetLocalTime(&lt);
-	printf("date: %d/%02d/%02d %02d:%02d:%02d\n",
-		lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond);
-}
+
 
 
 
@@ -97,9 +120,15 @@ void Welcome()
 int ShowMenu()
 {
 	system("cls"); // 清除之前的欢迎界面
-
 	menu.SetCursor(10, 10);
 	printf("Which level do you want to try?");
+	menu.SetCursor(10, 14);
+	printf("←/→: select difficulty");
+	menu.SetCursor(10, 15);
+	printf("r: show ranks");
+	menu.SetCursor(10, 16);
+	printf("e: exit");
+
 	int result = 0;
 	char ch = 0;
 
@@ -111,8 +140,12 @@ int ShowMenu()
 			result = (result + 2) % 3; // +2 = -1 + 3
 		if (ch == 77)
 			result = (result + 1) % 3;
+		if (ch == 'r')
+			ShowRank();
+		if (ch == 'e')
+			exit(0);
 
-		// 先输出3个选项...
+		// 先显示3个选项...
 		menu.SetCursor(10, 12);
 		printf(" EASY ");
 		menu.SetCursor(20, 12);
@@ -120,7 +153,7 @@ int ShowMenu()
 		menu.SetCursor(38, 12);
 		printf(" HARD ");
 
-		// ...再根据result的值判断当前所选项，换色后重新输出该选项
+		// ...再根据result的值判断当前所选项，换色后重新显示该选项
 		switch (result)
 		{
 		case 0:
@@ -139,7 +172,6 @@ int ShowMenu()
 			printf(" HARD ");
 			break;
 		default:
-
 			break;
 		}
 		menu.SetTextColor(TextDefault);
@@ -252,4 +284,79 @@ int Pause()
 
 void ShowRank()
 {
+	vector<vector<Record>> records(3);
+	char ch = 0;
+	int level = 0;
+	int max = 0;
+	rec.ReadRecord(records);
+
+	do
+	{
+		system("cls"); 
+
+		// 分割线
+		menu.SetCursor(0, 1);
+		for (int i = 0; i < SCR_WIDTH; ++i)
+			cout << '=';
+
+		menu.SetCursor(SCR_WIDTH / 5, 2);
+		printf("Score");
+		menu.SetCursor(SCR_WIDTH / 5 * 2, 2);
+		printf("Date");
+
+		// 实现按下左右方向键切换显示的难度记录
+		// 默认显示简单难度下的记录
+		if (ch == 75)
+			level = (level + 2) % 3; // +2 = -1 + 3
+		if (ch == 77)
+			level = (level + 1) % 3;
+
+		menu.SetCursor(0, 0);
+		switch (level)
+		{
+		case 0:
+			printf("Level: EASY ");
+			break;
+		case 1:
+			printf("Level: INTERMEDIATE ");
+			break;
+		case 2:
+			printf("Level: HARD ");
+			break;
+		}
+
+		max = 0;
+		for(int i = 0; i < records[level].size(); ++i)
+		{
+			int record = records[level][i].GetScore();
+			menu.SetCursor(SCR_WIDTH / 5, 4 + i * 2);
+			printf("%d", record);
+			menu.SetCursor(SCR_WIDTH / 5 * 2, 4 + i * 2);
+			printf("%s", records[level][i].GetDate());
+
+			max = (record > max ? record : max);
+		}
+
+		if (max != 0)
+		{
+			menu.SetCursor(SCR_WIDTH * 0.7, 0);
+			printf("Highest score : %d", max);
+		}
+
+		ch = _getch(); // 捕获左右方向键
+	} while (ch != 'q' && ch != 'Q'); // 按下q回到难度选择界面
+
+	// 退出，回到难度选择界面后要重新绘制界面
+	system("cls");
+	menu.SetCursor(10, 10);
+	printf("Which level do you want to try?");
+	menu.SetCursor(10, 14);
+	printf("←/→: select difficulty");
+	menu.SetCursor(10, 15);
+	printf("r: show ranks");
+}
+
+void DrawScore(vector<Record> vec)
+{
+
 }

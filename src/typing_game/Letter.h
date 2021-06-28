@@ -54,6 +54,8 @@ public:
 	// 反复执行Fall函数，让字母持续下落，捕捉用户的按键，消除对应的字母
 	// return 0 一轮游戏结束；return 1 进入暂停界面。
 	int Rain();
+
+	int GetScore() { return m_score; }
 };
 
 extern LetterShower ls;
