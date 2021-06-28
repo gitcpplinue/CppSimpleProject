@@ -18,12 +18,16 @@ const int GROUND = 27;
 const int SCR_WIDTH = 60;
 const int HEALTH = 5;
 
+
+
+
 // 管理界面绘制
+// 拥有一个全局变量，其它的类要设置光标位置都要通过Menu类成员函数来获取
 class Menu
 {
 private:
-	HANDLE m_handle;
-	COORD m_crd;
+	HANDLE m_handle; // 获取控制台标准输出的句柄
+	COORD m_crd; // 控制台光标坐标
 
 public:
 	Menu();
@@ -33,38 +37,29 @@ public:
 
 	// 设置文字颜色，只是省略了SetConsoleTextAttribute的第1个参数
 	void SetTextColor(WORD wAttributes);
-
-	// 显式欢迎界面
-	void Welcome();
-
-	// 显式难度选择菜单
-	int ShowMenu(); 
-
-	// 绘制地面
-	void DrawGround();
 };
 
-
 // 管理血量的显式、减少、恢复
-class Vitality
+class Health
 {
 private:
 	int m_health; // 剩余血量
 
 public:
-	Vitality();
+	Health();
 
 	// 显示血量
-	void ShowVitality();
+	void ShowHealth();
 
-	// 减少血量
+	// 减少血量，默认伤害为1
 	int GetWound(int n = 1);
 
-	// 回复血量
-	int GetHeal();
+	// 回复血量，i=0将血量回满，i=1只回1格血
+	int GetHeal(int i);
 };
 
-extern Menu menu;
-extern Vitality vty;
 
+
+extern Menu menu;
+extern Health health;
 

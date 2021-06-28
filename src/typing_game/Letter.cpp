@@ -2,11 +2,12 @@
 
 #pragma comment(lib, "winmm.lib") // 为了使用PlaySound函数播放音效
 
+LetterShower ls;
 
 LetterShower::LetterShower()
 {
-	m_score = 0;
 	m_delay = 300;
+	m_score = 0;
 }
 
 // 设置字母的掉落速度
@@ -14,7 +15,6 @@ void LetterShower::SetDelay(int d)
 {
 	m_delay = d;
 }
-
 void LetterShower::Wait()
 {
 	Sleep(m_delay);
@@ -43,7 +43,7 @@ int LetterShower::Fall()
 
 			if (Ground(*it)) // 如果字母落地，扣血
 			{
-				int iret = vty.GetWound();
+				int iret = health.GetWound();
 				if (iret <= 0) // 如果血量减为0，结束
 				{
 					menu.SetCursor(25, GROUND / 2);
@@ -81,13 +81,38 @@ void LetterShower::ClearAll()
 	m_score = 0;
 }
 
+void LetterShower::Level(int select)
+{
+
+	menu.SetCursor(0, 0);
+	switch (select)
+	{
+	case 0:
+		printf("Level: EASY ");
+		SetDelay(300);
+		break;
+	case 1:
+		printf("Level: INTERMEDIATE ");
+		SetDelay(200);
+		break;
+	case 2:
+		printf("Level: HARD ");
+		SetDelay(100);
+		break;
+	default:
+		printf("Level: EASY ");
+		SetDelay(300);
+		break;
+	}
+}
+
 void LetterShower::ShowScore()
 {
 	menu.SetCursor(0, GROUND + 2);
 	cout << "Score: " << m_score << "   ";
 }
 
-void LetterShower::Rain()
+int LetterShower::Rain()
 {
 	char ch = 0; // 保存用户按键
 	Letter letter;
@@ -97,7 +122,7 @@ void LetterShower::Rain()
 		while (!_kbhit())
 		{
 			if (Fall() == -1)
-				return; // while(1)的唯一出口
+				return 0; // 一轮游戏结束
 
 			Wait();
 			// 让每次循环有1/3的概率掉落新字母
@@ -112,18 +137,21 @@ void LetterShower::Rain()
 		{
 			if (!m_letters[ch - 'a'].empty())
 			{
+				// 根据键盘按下的字母，将对应的deque容器的队首从屏幕中清除
 				letter = m_letters[ch - 'a'].front();
-
 				menu.SetCursor(letter.x, letter.y);
 				cout << ' ';
 
-				m_letters[ch - 'a'].pop_front(); // 删除头元素，应该使用deque容器
+				m_letters[ch - 'a'].pop_front(); // 删除头元素
 				PlaySound(L"..\\sound\\m_score.wav", NULL, SND_ASYNC | SND_FILENAME);
-				m_score++;
 
+				m_score++;
 				ShowScore();
 			}
 		}
+		else if (ch == VK_ESCAPE) // 按下“esc”进入暂停界面
+			return 1; 
 	}
+	return 0;
 }
 
