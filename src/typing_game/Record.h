@@ -1,3 +1,5 @@
+// 引入MyDB类后，Record类用于保存游戏进行时的分数状态，不再负责数据的读写
+
 #pragma once
 #include <iostream>
 #include <windows.h>
@@ -8,8 +10,8 @@
 #include <fstream>
 #include "Menu.h"
 
-using namespace std;
 
+using namespace std;
 
 class Record
 {

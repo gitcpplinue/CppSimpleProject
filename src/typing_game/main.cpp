@@ -9,19 +9,12 @@
 #include "Letter.h"
 #include <fstream>
 #include "Record.h"
+#include "MyDB.h"
+
 
 using namespace std;
 
 #pragma comment(lib, "winmm.lib") // ÎªÁËÊ¹ÓÃPlaySoundº¯Êı²¥·ÅÒôĞ§
-
-
-
-
-
-
-
-
-
 
 
 // --------------------------- ÓÃÓÚ»æÖÆ½çÃæµÄÈ«¾Öº¯Êı ---------------------------
@@ -32,8 +25,7 @@ int GameStart(int level); // ÓÎÏ·¿ªÊ¼ÔËĞĞ¡£·µ»ØÖµ£º0-Õı³£½áÊø¡¢1-¼ÌĞøÓÎÏ·¡¢2-ÖØ¿
 int Pause(); // ÔİÍ£½çÃæ
 void ShowRank(); // ÅÅÃû½çÃæ
 
-
-
+/*
 int main()
 {
 	char choice = 'y'; // ÓÃ»§µÄÑ¡Ïî
@@ -101,10 +93,18 @@ int main()
 	}while (choice == 'Y' || choice == 'y');
 
 }
+*/
 
+int main()
+{
+	MyDB db;
+	db.Init();
 
-
-
+	vector<Record> vec;
+	int level;
+	db.GetRecordByScoreAsc(vec, 0);
+	db.AddRecord(777,0);
+}
 
 // --------------------------- ÓÃÓÚ»æÖÆ½çÃæµÄÈ«¾Öº¯Êı ---------------------------
 
@@ -294,14 +294,18 @@ void ShowRank()
 	{
 		system("cls"); 
 
-		// ·Ö¸îÏß
 		menu.SetCursor(0, 1);
+		printf("¡û/¡ú: switch page    q: back to menu");
+
+
+		// ·Ö¸îÏß
+		menu.SetCursor(0, 2);
 		for (int i = 0; i < SCR_WIDTH; ++i)
 			cout << '=';
 
-		menu.SetCursor(SCR_WIDTH / 5, 2);
+		menu.SetCursor(SCR_WIDTH / 5, 3);
 		printf("Score");
-		menu.SetCursor(SCR_WIDTH / 5 * 2, 2);
+		menu.SetCursor(SCR_WIDTH / 5 * 2, 3);
 		printf("Date");
 
 		// ÊµÏÖ°´ÏÂ×óÓÒ·½Ïò¼üÇĞ»»ÏÔÊ¾µÄÄÑ¶È¼ÇÂ¼
@@ -329,9 +333,9 @@ void ShowRank()
 		for(int i = 0; i < records[level].size(); ++i)
 		{
 			int record = records[level][i].GetScore();
-			menu.SetCursor(SCR_WIDTH / 5, 4 + i * 2);
+			menu.SetCursor(SCR_WIDTH / 5, 5 + i * 2);
 			printf("%d", record);
-			menu.SetCursor(SCR_WIDTH / 5 * 2, 4 + i * 2);
+			menu.SetCursor(SCR_WIDTH / 5 * 2, 5 + i * 2);
 			printf("%s", records[level][i].GetDate());
 
 			max = (record > max ? record : max);
@@ -354,9 +358,4 @@ void ShowRank()
 	printf("¡û/¡ú: select difficulty");
 	menu.SetCursor(10, 15);
 	printf("r: show ranks");
-}
-
-void DrawScore(vector<Record> vec)
-{
-
 }
