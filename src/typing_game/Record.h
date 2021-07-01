@@ -23,6 +23,7 @@ private:
 	string getDate();
 public:
 	Record();
+	Record(int score, int level, string date);
 
 	void SetScore(int i) { m_score = i; }
 	void SetLevel(int i) { m_level = i; }
@@ -38,4 +39,3 @@ public:
 
 };
 
-extern Record rec;

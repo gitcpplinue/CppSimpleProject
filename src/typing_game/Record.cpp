@@ -1,6 +1,6 @@
 #include "Record.h"
 
-Record rec;
+
 
 string Record::getDate()
 {
@@ -20,6 +20,14 @@ Record::Record()
 	m_score = 0;
 	m_level = 0;
 	memset(m_date, 0, sizeof(m_date));
+}
+
+Record::Record(int score, int level, string date)
+{
+	m_score = score;
+	m_level = level;
+	memset(m_date, 0, sizeof(m_date));
+	memcpy_s(m_date, sizeof(m_date), date.c_str(), date.length());
 }
 
 void Record::WriteRecord()

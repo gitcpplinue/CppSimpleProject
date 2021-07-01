@@ -2,7 +2,7 @@
 
 #pragma comment(lib, "winmm.lib") // 为了使用PlaySound函数播放音效
 
-LetterShower ls;
+
 
 LetterShower::LetterShower()
 {

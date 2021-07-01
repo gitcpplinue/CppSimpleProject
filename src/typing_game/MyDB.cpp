@@ -12,7 +12,7 @@ MyDB::~MyDB()
 }
 
 // 可以正常获取DB数据
-void MyDB::Init()
+void MyDB::Connect()
 {
     const char user[] = "root";
     const char pswd[] = "123456";
@@ -47,7 +47,7 @@ void MyDB::AddRecord(int score, int level)
     }
 }
 
-void MyDB::GetRecordByScoreAsc(vector<Record> vec, int level)
+void MyDB::GetRecordByScoreAsc(vector<Record>& vec, int level)
 {
     int ret;
     char sql_select_sa[150] = { 0 };
@@ -63,13 +63,12 @@ void MyDB::GetRecordByScoreAsc(vector<Record> vec, int level)
         sql_result = mysql_store_result(&mySql); // 获得查询结果
         if (sql_result)
         {
+            // 清空vec容器
+            vec.clear();
             while (sql_row = mysql_fetch_row(sql_result)) // 从查询结果中逐行获取数据
             {
-                // 操作结果
-                cout << "score: " << sql_row[0] << " ";
-                cout << "level: " << sql_row[1] << " ";
-                cout << "date_t: " << sql_row[2] << endl;
-
+                // 使用每一行的数据生成一个Record对象，插入vec容器中
+                vec.push_back({ atoi(sql_row[0]), atoi(sql_row[1]), sql_row[2] });
             }
         }
     }
@@ -81,7 +80,7 @@ void MyDB::GetRecordByScoreAsc(vector<Record> vec, int level)
     }
 }
 
-void MyDB::GetRecordByScoreDesc(vector<Record> vec, int level)
+void MyDB::GetRecordByScoreDesc(vector<Record>& vec, int level)
 {
     int ret;
     char sql_select_sd[150] = { 0 };
@@ -97,13 +96,12 @@ void MyDB::GetRecordByScoreDesc(vector<Record> vec, int level)
         sql_result = mysql_store_result(&mySql); // 获得查询结果
         if (sql_result)
         {
+            // 清空vec容器
+            vec.clear();
             while (sql_row = mysql_fetch_row(sql_result)) // 从查询结果中逐行获取数据
             {
-                // 操作结果
-                cout << "score: " << sql_row[0] << " ";
-                cout << "level: " << sql_row[1] << " ";
-                cout << "date_t: " << sql_row[2] << endl;
-
+                // 使用每一行的数据生成一个Record对象，插入vec容器中
+                vec.push_back({ atoi(sql_row[0]), atoi(sql_row[1]), sql_row[2] });
             }
         }
     }
@@ -115,7 +113,7 @@ void MyDB::GetRecordByScoreDesc(vector<Record> vec, int level)
     }
 }
 
-void MyDB::GetRecordByDateAsc(vector<Record> vec, int level)
+void MyDB::GetRecordByDateAsc(vector<Record>& vec, int level)
 {
     int ret;
     char sql_select_da[150] = { 0 };
@@ -131,13 +129,12 @@ void MyDB::GetRecordByDateAsc(vector<Record> vec, int level)
         sql_result = mysql_store_result(&mySql); // 获得查询结果
         if (sql_result)
         {
+            // 清空vec容器
+            vec.clear();
             while (sql_row = mysql_fetch_row(sql_result)) // 从查询结果中逐行获取数据
             {
-                // 操作结果
-                cout << "score: " << sql_row[0] << " ";
-                cout << "level: " << sql_row[1] << " ";
-                cout << "date_t: " << sql_row[2] << endl;
-
+                // 使用每一行的数据生成一个Record对象，插入vec容器中
+                vec.push_back({ atoi(sql_row[0]), atoi(sql_row[1]), sql_row[2] });
             }
         }
     }
@@ -149,14 +146,14 @@ void MyDB::GetRecordByDateAsc(vector<Record> vec, int level)
     }
 }
 
-void MyDB::GetRecordByDateDesc(vector<Record> vec, int level)
+void MyDB::GetRecordByDateDesc(vector<Record>& vec, int level)
 {
     int ret;
     char sql_select_dd[150] = { 0 };
     sprintf_s(sql_select_dd, "SELECT score,level,date_t \
         FROM records \
         WHERE level=%d \
-        ORDER BY score \
+        ORDER BY date_t \
         DESC", level);
 
     ret = mysql_query(&mySql, sql_select_dd);  // sql语句
@@ -165,13 +162,12 @@ void MyDB::GetRecordByDateDesc(vector<Record> vec, int level)
         sql_result = mysql_store_result(&mySql); // 获得查询结果
         if (sql_result)
         {
+            // 清空vec容器
+            vec.clear();
             while (sql_row = mysql_fetch_row(sql_result)) // 从查询结果中逐行获取数据
             {
-                // 操作结果
-                cout << "score: " << sql_row[0] << " ";
-                cout << "level: " << sql_row[1] << " ";
-                cout << "date_t: " << sql_row[2] << endl;
-
+                // 使用每一行的数据生成一个Record对象，插入vec容器中
+                vec.push_back({ atoi(sql_row[0]), atoi(sql_row[1]), sql_row[2] });
             }
         }
     }

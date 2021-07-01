@@ -57,5 +57,3 @@ public:
 
 	int GetScore() { return m_score; }
 };
-
-extern LetterShower ls;

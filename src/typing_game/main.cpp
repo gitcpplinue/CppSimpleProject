@@ -25,16 +25,18 @@ int GameStart(int level); // ÓÎÏ·¿ªÊ¼ÔËĞĞ¡£·µ»ØÖµ£º0-Õı³£½áÊø¡¢1-¼ÌĞøÓÎÏ·¡¢2-ÖØ¿
 int Pause(); // ÔİÍ£½çÃæ
 void ShowRank(); // ÅÅÃû½çÃæ
 
-/*
+MyDB g_db;
+Record g_rec;
+LetterShower g_ls;
+
 int main()
 {
 	char choice = 'y'; // ÓÃ»§µÄÑ¡Ïî
 	int level; // ÓÃ»§Ñ¡ÔñµÄÄÑ¶È
 	int gret = -1;
 	
-
-
 	srand(time(0)); // ²úÉúËæ»úÖÖ×Ó
+	
 
 	// ÏÈÏÔÊ¾»¶Ó­½çÃæ£¬´ıÓÃ»§°´ÏÂÈÎÒâ¼üºó½øÈëÑ¡Ïî½çÃæ
 	Welcome();
@@ -47,22 +49,26 @@ int main()
 		// Çå³ıShowMenu()Éú³ÉµÄ½çÃæ
 		system("cls");
 		// Çå¿ÕÉÏ´ÎlsÔËĞĞµÄ×´Ì¬
-		ls.ClearAll();
+		g_ls.ClearAll();
 		health.GetHeal(0);
 
 		ShowPlayGround(level);
-		rec.SetLevel(level);
+		g_rec.SetLevel(level);
 
 		bool flag = 0; // ÓÃÓÚÇø·ÖÓÎÏ·Õı³£ÖÕÖ¹(flag == 1)»¹ÊÇÍ¨¹ıÔİÍ£½çÃæÖØĞÂ¿ªÊ¼(flag == 0)
 		while (1)
 		{
 			gret = GameStart(level);
+			
 
 			if (gret == 0) // ÓÎÏ·Õı³£½áÊø£¬ÍË³öÄÚ²ãwhileÑ­»·
 			{
 				flag = 1;
-				rec.SetScore(ls.GetScore());
-				rec.WriteRecord();
+				g_rec.SetScore(g_ls.GetScore());
+				g_db.Connect();
+				g_db.AddRecord(g_rec.GetScore(), g_rec.GetLevel());
+				g_db.Close();
+				//rec.WriteRecord();
 				break;
 			}
 			else if (gret == 1) // ÔİÍ£-¼ÌĞøÓÎÏ·
@@ -70,16 +76,23 @@ int main()
 			else if (gret == 2) // ÔİÍ£-½áÊø´ËÂÖÓÎÏ·£¬ÍË³öÄÚ²ãwhileÑ­»·
 			{
 				// ¼ÇÂ¼´ËÂÖÓÎÏ·ĞÅÏ¢
-				rec.SetScore(ls.GetScore());
-				rec.WriteRecord();
+				g_rec.SetScore(g_ls.GetScore());
+				g_db.Connect();
+				g_db.AddRecord(g_rec.GetScore(), g_rec.GetLevel());
+				g_db.Close();
+				//rec.WriteRecord();
 				flag = 0;
 				break; 
 			}
 			else if (gret == 3) // ÔİÍ£-ÍË³öÓÎÏ·
 			{
 				// ¼ÇÂ¼´ËÂÖÓÎÏ·ĞÅÏ¢
-				rec.SetScore(ls.GetScore());
-				rec.WriteRecord();
+				g_rec.SetScore(g_ls.GetScore());
+				g_db.Connect();
+				g_db.AddRecord(g_rec.GetScore(), g_rec.GetLevel());
+				g_db.Close();
+				//rec.WriteRecord();
+
 				return 0; 
 			}
 		}
@@ -92,18 +105,6 @@ int main()
 		}
 	}while (choice == 'Y' || choice == 'y');
 
-}
-*/
-
-int main()
-{
-	MyDB db;
-	db.Init();
-
-	vector<Record> vec;
-	int level;
-	db.GetRecordByScoreAsc(vec, 0);
-	db.AddRecord(777,0);
 }
 
 // --------------------------- ÓÃÓÚ»æÖÆ½çÃæµÄÈ«¾Öº¯Êı ---------------------------
@@ -186,7 +187,7 @@ int ShowMenu()
 void ShowPlayGround(int difficulty)
 {
 	// ×óÉÏ½ÇÏÔÊ¾ËùÑ¡ÄÑ¶È
-	ls.Level(difficulty);
+	g_ls.Level(difficulty);
 
 	// ÓÒÉÏ½ÇÏÔÊ¾ÑªÁ¿
 	health.ShowHealth();
@@ -197,7 +198,7 @@ void ShowPlayGround(int difficulty)
 		cout << '=';
 
 	// µØÃæÏÂ·½ÏÔÊ¾·ÖÊı
-	ls.ShowScore();
+	g_ls.ShowScore();
 
 	// ÔÚ·ÖÊıÏÂ·½ÏÔÊ¾ÔİÍ£ÌáÊ¾
 	menu.SetCursor(0, GROUND + 3);
@@ -206,26 +207,28 @@ void ShowPlayGround(int difficulty)
 
 int GameStart(int level)
 {
-	int pret = -1;
+	int pret = -1; // Pause()º¯ÊıµÄ·µ»ØÖµ
+
 	// ÓÎÏ·¿ªÊ¼ÔËĞĞ
-	if (ls.Rain() == 1)
+	if (g_ls.Rain() == 1)
 		pret = Pause();
 
 	switch (pret)
 	{
-	case 0:
+	case 0: // ¼ÌĞøÓÎÏ·
 		system("cls");
 		ShowPlayGround(level);
 		return 1;
-	case 1:
+	case 1: // ÖØ¿ª
 		return 2;
-	case 2:
+	case 2: // ÍË³ö
 		return 3;
-	default:
+	default: // ÓÎÏ·Õı³£½áÊø
 		return 0;
 	}
 }
 
+// ·µ»ØÖµ£º0¡ª¡ª¼ÌĞø¡¢1¡ª¡ªÖØ¿ª¡¢2¡ª¡ªÍË³ö
 int Pause()
 {
 	menu.SetCursor(25, GROUND / 2 - 4);
@@ -282,39 +285,64 @@ int Pause()
 	return choice;
 }
 
+// ´ıÓÅ»¯£º¡°base = 0;¡±¡£³ıÁË°´ÏÂ¡üºÍ¡ıÒÔÍâ£¬ÆäÓàËùÓĞµÄÑ¡Ïî±»Ñ¡ÖĞ¶¼Òª½«base¹éÁã¡£
 void ShowRank()
 {
 	vector<vector<Record>> records(3);
-	char ch = 0;
-	int level = 0;
-	int max = 0;
-	rec.ReadRecord(records);
 
+	char ch = 0; // »ñÈ¡°´¼ü
+
+	int level = 0; // ÄÑ¶È£º0¡ª¡ª¼òµ¥¡¢1¡ª¡ªÖĞµÈ¡¢2¡ª¡ªÀ§ÄÑ
+
+	bool arsc = false; // Ä¬ÈÏ½µĞòÅÅĞò
+	bool order_by_s = true; // Ä¬ÈÏ°´·ÖÊıÅÅĞò
+
+	char state1; // ÌáÊ¾µ±Ç°µÄÅÅĞò¹æÔò
+	char state2;
+
+	int max = 0; // µ±Ç°¼ÇÂ¼ÖĞµÄ×î´óÖµ
+
+	int base = 0; // ÓÃÓÚÊµÏÖ·­Ò³¹¦ÄÜ
+	const int a_page = 13; // Ò»´Î×î¶àÏÔÊ¾13Ìõ¼ÇÂ¼
+	int pages = 1; // µ±Ç°µÄ¼ÇÂ¼ÊıĞèÒª·ÖÎª¶àÉÙÒ³
+
+	//rec.ReadRecord(records);
+
+	g_db.Connect();
 	do
 	{
 		system("cls"); 
 
+		// ²Ù×÷ÌáÊ¾
 		menu.SetCursor(0, 1);
-		printf("¡û/¡ú: switch page    q: back to menu");
-
+		printf("¡û/¡ú: change level    ¡ü/¡ı: previous/next page\n");
+		printf("r/d: change order    s/t: order by score/time    q: quit");
 
 		// ·Ö¸îÏß
-		menu.SetCursor(0, 2);
+		menu.SetCursor(0, 3);
 		for (int i = 0; i < SCR_WIDTH; ++i)
 			cout << '=';
 
-		menu.SetCursor(SCR_WIDTH / 5, 3);
+		// ÊôĞÔÃû
+		menu.SetCursor(SCR_WIDTH / 5, 4);
 		printf("Score");
-		menu.SetCursor(SCR_WIDTH / 5 * 2, 3);
+		menu.SetCursor(SCR_WIDTH / 5 * 2, 4);
 		printf("Date");
+
 
 		// ÊµÏÖ°´ÏÂ×óÓÒ·½Ïò¼üÇĞ»»ÏÔÊ¾µÄÄÑ¶È¼ÇÂ¼
 		// Ä¬ÈÏÏÔÊ¾¼òµ¥ÄÑ¶ÈÏÂµÄ¼ÇÂ¼
 		if (ch == 75)
+		{
 			level = (level + 2) % 3; // +2 = -1 + 3
+			base = 0; 
+		}
 		if (ch == 77)
+		{
 			level = (level + 1) % 3;
-
+			base = 0;
+		}
+		// ½«Ñ¡ÔñµÄÄÑ¶ÈÏÔÊ¾ÔÚ×óÉÏ½Ç
 		menu.SetCursor(0, 0);
 		switch (level)
 		{
@@ -329,28 +357,82 @@ void ShowRank()
 			break;
 		}
 
+		// ÇĞ»»Êı¾İµÄÅäÁĞ¹æÔò: ¸ù¾İ·ÖÊı/ÈÕÆÚ Éı/½µĞòÅÅÁĞ¡£
+		if (ch == 'r')
+		{
+			arsc = true;
+			base = 0;
+		}
+		else if (ch == 'd')
+		{
+			arsc = false;
+			base = 0;
+		}
+
+		if (ch == 's')
+		{
+			order_by_s = true;
+			base = 0;
+		}
+		else if (ch == 't')
+		{
+			order_by_s = false;
+			base = 0;
+		}
+		// ÏÔÊ¾ÅÅĞò¹æÔò
+		state1 = (order_by_s ? 's' : 't');
+		state2 = (arsc ? 'r' : 'd');
+		menu.SetCursor(SCR_WIDTH * 0.8, 4);
+		printf("(%c/%c)", state1, state2);
+
+		// ´ÓÊı¾İ¿â»ñÈ¡Êı¾İ
+		if (order_by_s)
+		{
+			if (!arsc)
+				g_db.GetRecordByScoreDesc(records[level], level);
+			else
+				g_db.GetRecordByScoreAsc(records[level], level);
+		}
+		else
+		{
+			if (!arsc)
+				g_db.GetRecordByDateDesc(records[level], level);
+			else
+				g_db.GetRecordByDateAsc(records[level], level);
+		}
+
+
+		pages = records[level].size() / 13 + 1;
+		if (ch == 72) // ¡ü
+			base = (base - 1 + pages) % pages;
+		if (ch == 80) // ¡ı
+			base = (base + 1) % pages;
+
 		max = 0;
-		for(int i = 0; i < records[level].size(); ++i)
+		// ½«ÈİÆ÷ÖĞµÄÊı¾İÏÔÊ¾ÔÚÆÁÄ»ÉÏ
+		for (int i = base * a_page, j = 0; i < records[level].size() && i < base * a_page + a_page; ++i, ++j)
 		{
 			int record = records[level][i].GetScore();
-			menu.SetCursor(SCR_WIDTH / 5, 5 + i * 2);
+			menu.SetCursor(SCR_WIDTH / 5, 6 + j * 2);
 			printf("%d", record);
-			menu.SetCursor(SCR_WIDTH / 5 * 2, 5 + i * 2);
+			menu.SetCursor(SCR_WIDTH / 5 * 2, 6 + j * 2);
 			printf("%s", records[level][i].GetDate());
 
 			max = (record > max ? record : max);
 		}
 
+		// ÏÔÊ¾µ±Ç°ÄÑ¶ÈµÄ×î¸ß·Ö
 		if (max != 0)
 		{
-			menu.SetCursor(SCR_WIDTH * 0.7, 0);
+			menu.SetCursor(SCR_WIDTH * 0.65, 0);
 			printf("Highest score : %d", max);
 		}
 
 		ch = _getch(); // ²¶»ñ×óÓÒ·½Ïò¼ü
 	} while (ch != 'q' && ch != 'Q'); // °´ÏÂq»Øµ½ÄÑ¶ÈÑ¡Ôñ½çÃæ
+	g_db.Close();
 
-	// ÍË³ö£¬»Øµ½ÄÑ¶ÈÑ¡Ôñ½çÃæºóÒªÖØĞÂ»æÖÆ½çÃæ
+	// ÍË³öÅÅÃû½çÃæ£¬»Øµ½ÄÑ¶ÈÑ¡Ôñ½çÃæºóÒªÖØĞÂ»æÖÆ½çÃæ
 	system("cls");
 	menu.SetCursor(10, 10);
 	printf("Which level do you want to try?");
@@ -358,4 +440,6 @@ void ShowRank()
 	printf("¡û/¡ú: select difficulty");
 	menu.SetCursor(10, 15);
 	printf("r: show ranks");
+	menu.SetCursor(10, 16);
+	printf("e: exit");
 }
